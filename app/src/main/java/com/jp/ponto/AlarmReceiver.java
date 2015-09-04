@@ -34,7 +34,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
          * // This intent passed in this call will include the wake lock extra as well as 
          * // the receiver intent contents.
          * startWakefulService(context, (intent.setComponent(comp)));
-         * 
+         * x
          * In this example, we simply create a new intent to deliver to the service.
          * This intent holds an extra identifying the wake lock.
          */
@@ -49,7 +49,6 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     /**
      * Sets a repeating alarm that runs once a day at approximately 8:30 a.m. When the
      * alarm fires, the app broadcasts an Intent to this WakefulBroadcastReceiver.
-     * @param context
      */
     public void setAlarm(Context context) {
         alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
