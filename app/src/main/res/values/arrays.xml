@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="listjornadaentries">
+        <item>6 Horas</item>
+        <item>8 Horas</item>
+    </string-array>
+    <string-array name="listjornadavalues">
+        <item>6</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="listintervaloentries">
+        <item>1 Hora</item>
+        <item>2 Horas</item>
+    </string-array>
+    <string-array name="listintervalovalues">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+</resources>

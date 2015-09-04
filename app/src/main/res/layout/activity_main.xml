@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    >
+
+
+    <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:id="@+id/lvHorario"
+        android:choiceMode="multipleChoice"
+        android:layout_weight="1"
+        android:visibility="visible"
+        android:dividerHeight="1dp"
+        android:drawSelectorOnTop="true"
+        android:clickable="false" />
+
+    <DigitalClock
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:id="@+id/textClock"
+        android:textSize="30dp"
+        android:background="#3c646464"
+        android:gravity="center_vertical|center_horizontal"
+        android:textStyle="bold"
+         />
+
+</LinearLayout>

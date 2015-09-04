@@ -1,0 +1,22 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="alarme_checkbox"
+        android:title="Alarme" />
+
+    <ListPreference
+        android:entries="@array/listjornadaentries"
+        android:entryValues="@array/listjornadavalues"
+        android:key="jornada_list"
+        android:title="Jornada de Trabalho"
+        android:defaultValue="8"/>
+
+    <ListPreference
+        android:entries="@array/listintervaloentries"
+        android:entryValues="@array/listintervalovalues"
+        android:key="intervalo_list"
+        android:title="Intervalo de Almoço"
+        android:defaultValue="2"/>
+
+</PreferenceScreen>

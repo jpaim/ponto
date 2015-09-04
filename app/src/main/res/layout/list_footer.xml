@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutMarcacao"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:transitionGroup="false"
+    android:background="@android:color/holo_blue_dark"
+    android:clickable="false">
+
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:id="@+id/tableRow1"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/TextView01"
+                android:text="Horas"
+                android:layout_weight="1"
+                android:background="#dcdcdc"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:padding="2dip"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/TextView02"
+                android:text="xxxx"
+                android:layout_weight="1"
+                android:background="#d3d3d3"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:padding="2dip"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/TextView03"
+                android:text="Saída"
+                android:layout_weight="1"
+                android:background="#cac9c9"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:padding="2dip"
+                android:gravity="center"/>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow2"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/TextView21"
+                android:text="10h00"
+                android:layout_weight="1"
+                android:background="#dcdcdc"
+                android:textColor="#000000"
+                android:padding="2dip"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/TextView22"
+                android:text="8h00"
+                android:layout_weight="1"
+                android:background="#d3d3d3"
+                android:textColor="#000000"
+                android:padding="2dip"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/TextView23"
+                android:text="16:00"
+                android:layout_weight="1"
+                android:background="#cac9c9"
+                android:textColor="#000000"
+                android:padding="2dip"
+                android:gravity="center"/>
+        </TableRow>
+    </TableLayout>
+
+
+</LinearLayout>

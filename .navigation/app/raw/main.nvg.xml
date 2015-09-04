@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<navigationModel
+    ns="http://schemas.android.com?import=com.android.tools.idea.editors.navigation.model.*">
+    <locations class="java.util.ArrayList">
+        <statePointEntry>
+            <state class="com.android.tools.idea.editors.navigation.model.ActivityState"
+                className="com.jp.ponto.ConfigActivity" />
+            <point x="2876" y="212" />
+        </statePointEntry>
+        <statePointEntry>
+            <state class="com.android.tools.idea.editors.navigation.model.MenuState"
+                className="com.jp.ponto.ConfigActivity" />
+            <point x="4456" y="212" />
+        </statePointEntry>
+        <statePointEntry>
+            <state class="com.android.tools.idea.editors.navigation.model.ActivityState"
+                className="com.jp.ponto.MainActivity" />
+            <point x="500" y="100" />
+        </statePointEntry>
+        <statePointEntry>
+            <state class="com.android.tools.idea.editors.navigation.model.MenuState"
+                className="com.jp.ponto.MainActivity" />
+            <point x="1888" y="824" />
+        </statePointEntry>
+    </locations>
+</navigationModel>
