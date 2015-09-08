@@ -1,7 +1,9 @@
 package com.jp.ponto;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,9 +25,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Map;
+
 
 public class MainActivity extends Activity implements AbsListView.MultiChoiceModeListener {
 
@@ -34,6 +35,15 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     MarcacoesAdapter adapter;
     SharedPreferences prefs;
     View viewFooter;
+
+    //    ALARMES
+    AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+    private static MainActivity inst;
+
+    public static MainActivity instance() {
+        return inst;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,19 +61,21 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     @Override
     protected void onStart() {
         super.onStart();
+
+        inst = this;
         init();
 
         int currentapiVersion = android.os.Build.VERSION.SDK_INT;
 //        if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1){
-            View t = (View) findViewById(R.id.textClock);
-            t.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    novaMarcacao(null);
-                    displayListView();
-                    return true;
-                }
-            });
+        View t = (View) findViewById(R.id.textClock);
+        t.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                novaMarcacao(null);
+                displayListView();
+                return true;
+            }
+        });
 //        }
 
     }
@@ -82,14 +94,17 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         listView = (ListView) findViewById(R.id.lvHorario);
         listView.setMultiChoiceModeListener(this);
         listView.setChoiceMode(listView.CHOICE_MODE_MULTIPLE_MODAL);
+
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
         displayListView();
     }
 
 
     private void displayListView() {
-        ArrayList<Marcacoes> lm =  db.listaMarcacoes(Funcoes.getCurDate());
+        ArrayList<Marcacoes> lm = db.listaMarcacoes(Funcoes.getCurDate());
         adapter = new MarcacoesAdapter(this, lm);
-        
+
         long soma = somarHoras(lm);
 
         listView.setAdapter(adapter);
@@ -103,74 +118,101 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         TextView textSaida = (TextView) findViewById(R.id.TextView23);
         TextView textTermo = (TextView) findViewById(R.id.TextView02);
 
-        long jornada = Long.parseLong(prefs.getString("jornada_list","8")) * 3600000;
+        long jornada = Long.parseLong(prefs.getString("jornada_list", "8")) * 3600000;
 
         long saida = jornada - soma;
         String termo = "Exato";
-        String hora_saida = " --- ";
-        String br = System.getProperty ("line.separator");
+        Calendar hora_saida = null;
+        String text_saida = " --- ";
+        String br = System.getProperty("line.separator");
 
         if (saida < 0) {
             termo = "Extra";
-        }
-        else
-        if (saida > 0) {
+        } else if (saida > 0) {
             termo = "Faltam";
-            hora_saida = horarioSaida(lm,saida);
 
+            hora_saida = horarioSaida(lm, saida);
+            if (hora_saida != null) {
+                text_saida = new SimpleDateFormat("HH:mm").format(hora_saida.getTime());
+                if (hora_saida.getTimeInMillis() > Calendar.getInstance().getTimeInMillis())
+                    setAlarm(hora_saida);
+            }
         }
 
         textTermo.setText(termo);
         textTrab.setText(converteHMS(soma));
         textDif.setText(converteHMS(Math.abs(saida)));
-        textSaida.setText(hora_saida);
+        textSaida.setText(text_saida);
+
 
         listView.setSelection(listView.getAdapter().getCount());
     }
 
-    private String horarioSaida(ArrayList<Marcacoes> lm, long saida) {
+    private void setAlarm(Calendar hora_saida) {
+        Intent myIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
+        //alarmManager.cancel(pendingIntent);
+
+        if (prefs.getBoolean("alarme_checkbox", false))
+            alarmManager.set(AlarmManager.RTC_WAKEUP, hora_saida.getTimeInMillis(), pendingIntent);
+        else
+            alarmManager.cancel(pendingIntent);
+
+    }
+
+
+
+    private void cancelAlarm() {
+        Intent myIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
+        //alarmManager.cancel(pendingIntent);
+        alarmManager.cancel(pendingIntent);
+    }
+
+    private Calendar horarioSaida(ArrayList<Marcacoes> lm, long saida) {
         int i = lm.size();
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         long novoHorario = -1;
-        String retorno = " --- ";
-        if ( i > 0 && i % 2 != 0 ) {
+        Calendar retorno = null;
+        if (i > 0 && i % 2 != 0) {
 
             Calendar c1 = GregorianCalendar.getInstance();
             try {
-                c1.setTime(df.parse(lm.get(i-1).getData() + " " + lm.get(i-1).getHora()));
+                c1.setTime(df.parse(lm.get(i - 1).getData() + " " + lm.get(i - 1).getHora()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
 
             novoHorario = saida + c1.getTimeInMillis();
             c1.setTimeInMillis(novoHorario);
-            retorno = new SimpleDateFormat("HH:mm").format(c1.getTime());
+            retorno = c1;
         }
         return retorno;
     }
 
     private String converteHMS(long soma) {
         soma /= 60000;
-        return String.format("%01dh%02d",(soma / 60) , (soma % 60)) ;
+        return String.format("%01dh%02d", (soma / 60), (soma % 60));
     }
 
 
     private long somarHoras(ArrayList<Marcacoes> lm) {
         long dif = 0;
-        for (int i = 1; i < lm.size() ; i++) {
-           if (i % 2 != 0) {
-               try {
-                   dif += Funcoes.difDateTime(lm.get(i).getData() + " " + lm.get(i).getHora(),
-                                              lm.get(i-1).getData() + " " + lm.get(i-1).getHora());
-               } catch (ParseException e) {
-                   e.printStackTrace();
-               }
-           }
+        for (int i = 1; i < lm.size(); i++) {
+            if (i % 2 != 0) {
+                try {
+                    dif += Funcoes.difDateTime(lm.get(i).getData() + " " + lm.get(i).getHora(),
+                            lm.get(i - 1).getData() + " " + lm.get(i - 1).getHora());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         return dif;
     }
-    
+
+
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -200,6 +242,7 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        cancelAlarm();
 
         if (id == R.id.action_add) {
             novaMarcacao(null);

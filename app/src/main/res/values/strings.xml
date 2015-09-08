@@ -23,4 +23,7 @@ Welcome to
     <string name="doodle_found">There is a Google doodle today!!</string>
     <string name="no_doodle">No Google doodle today.</string>
     <string name="connection_error">Connection error.</string>
+    <string name="title_activity_alarm_receiver">AlarmReceiverActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

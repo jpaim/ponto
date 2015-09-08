@@ -1,9 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    >
+    android:gravity="center">
 
 
     <ListView
@@ -25,7 +24,7 @@
         android:background="#3c646464"
         android:gravity="center_vertical|center_horizontal"
         android:textStyle="bold"
-        android:format12Hour="h:mm:ss"
-        android:format24Hour="h:mm:ss" />
+        android:format12Hour="H:mm:ss"
+        android:format24Hour="H:mm:ss" />
 
 </LinearLayout>
