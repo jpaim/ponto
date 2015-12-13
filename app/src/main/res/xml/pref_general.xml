@@ -6,6 +6,13 @@
         android:title="Alarme" />
 
     <ListPreference
+        android:entries="@array/listalarmedelayentries"
+        android:entryValues="@array/listalarmevalues"
+        android:key="alarme_delay"
+        android:title="Antecipar Alarme"
+        android:defaultValue="5"/>
+
+    <ListPreference
         android:entries="@array/listjornadaentries"
         android:entryValues="@array/listjornadavalues"
         android:key="jornada_list"

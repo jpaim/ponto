@@ -12,22 +12,20 @@ import android.widget.Toast;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
-    private static final int MY_NOTIFICATION_ID=12345;
+    private static final int id=0;
     NotificationManager notificationManager;
     Notification myNotification;
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
-
-
-        Toast.makeText(context, "Alarme recebido!", Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "Alarme !!!", Toast.LENGTH_LONG).show();
 
         Intent myIntent = new Intent(context,MainActivity.class );
-        myIntent.putExtra("Alarme",true);
+
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
-                0,
+                id,
                 myIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -45,11 +43,10 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .build();
 
         notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(MY_NOTIFICATION_ID, myNotification);
+        notificationManager.notify(id, myNotification);
 
         Intent intent2 = new Intent(context, AlarmReceiverActivity.class);
         intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent2.putExtra("Alarme", true);
         context.startActivity(intent2);
     }
 

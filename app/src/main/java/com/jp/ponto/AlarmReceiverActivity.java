@@ -44,6 +44,42 @@ public class AlarmReceiverActivity extends Activity {
         playSound(this, getAlarmUri());
     }
 
+    /**
+     * Call this when your activity is done and should be closed.  The
+     * ActivityResult is propagated back to whoever launched you via
+     * onActivityResult().
+     */
+    @Override
+    public void finish() {
+        if (mMediaPlayer != null)
+            mMediaPlayer.stop();
+        super.finish();
+    }
+
+    /**
+     * Called when you are no longer visible to the user.  You will next
+     * receive either {@link #onRestart}, {@link #onDestroy}, or nothing,
+     * depending on later user activity.
+     * <p/>
+     * <p>Note that this method may never be called, in low memory situations
+     * where the system does not have enough memory to keep your activity's
+     * process running after its {@link #onPause} method is called.
+     * <p/>
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @see #onRestart
+     * @see #onResume
+     * @see #onSaveInstanceState
+     * @see #onDestroy
+     */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        finish();
+    }
+
     private void playSound(Context context, Uri alert) {
         mMediaPlayer = new MediaPlayer();
         try {

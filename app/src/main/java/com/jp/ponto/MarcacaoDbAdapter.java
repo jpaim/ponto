@@ -6,9 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -78,7 +76,7 @@ public final class MarcacaoDbAdapter {
 //    }
 
     public ArrayList<Marcacoes> listaMarcacoes(String dt) {
-        ArrayList<Marcacoes> m = new ArrayList<Marcacoes>();
+        ArrayList<Marcacoes> m = new ArrayList<>();
         Cursor cursor_marcacao = fetchAllMarcacoes(dt);
         cursor_marcacao.moveToFirst();
         while (!cursor_marcacao.isAfterLast()) {

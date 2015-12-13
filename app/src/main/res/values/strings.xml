@@ -26,4 +26,7 @@ Welcome to
     <string name="title_activity_alarm_receiver">AlarmReceiverActivity</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="extra">Extra</string>
+    <string name="faltam">Faltam</string>
+    <string name="exato">Exato</string>
 </resources>

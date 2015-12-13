@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
+import java.util.Locale;
 
 public class MainActivity extends Activity implements AbsListView.MultiChoiceModeListener {
 
@@ -39,17 +39,12 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     //    ALARMES
     AlarmManager alarmManager;
     private PendingIntent pendingIntent;
-    private static MainActivity inst;
-
-    public static MainActivity instance() {
-        return inst;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        onStart();
+        init();
     }
 
     @Override
@@ -58,16 +53,36 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         return true;
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
 
-        inst = this;
-        init();
+    }
 
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
-//        if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1){
-        View t = (View) findViewById(R.id.textClock);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //    if (db != null)
+        //        db.close();
+    }
+
+    private void init() {
+        db = new MarcacaoDbAdapter(this);
+        db.open();
+
+        listView = (ListView) findViewById(R.id.lvHorario);
+        listView.setMultiChoiceModeListener(this);
+        listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+        displayListView();
+
+        View t = findViewById(R.id.textClock);
+
         t.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -76,40 +91,17 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
                 return true;
             }
         });
-//        }
-
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (db != null)
-            db.close();
-    }
-
-    private void init() {
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        db = new MarcacaoDbAdapter(this);
-        db.open();
-        listView = (ListView) findViewById(R.id.lvHorario);
-        listView.setMultiChoiceModeListener(this);
-        listView.setChoiceMode(listView.CHOICE_MODE_MULTIPLE_MODAL);
-
-        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
-        displayListView();
-    }
-
 
     private void displayListView() {
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         ArrayList<Marcacoes> lm = db.listaMarcacoes(Funcoes.getCurDate());
         adapter = new MarcacoesAdapter(this, lm);
-
         long soma = somarHoras(lm);
-
         listView.setAdapter(adapter);
-
         viewFooter = getLayoutInflater().inflate(R.layout.list_footer, null);
+
         if (listView.getFooterViewsCount() == 0)
             listView.addFooterView(viewFooter, null, false);
 
@@ -118,64 +110,90 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         TextView textSaida = (TextView) findViewById(R.id.TextView23);
         TextView textTermo = (TextView) findViewById(R.id.TextView02);
 
-        long jornada = Long.parseLong(prefs.getString("jornada_list", "8")) * 3600000;
 
+        long jornada = Long.parseLong(prefs.getString("jornada_list", "8")) * 3600000;
         long saida = jornada - soma;
-        String termo = "Exato";
-        Calendar hora_saida = null;
+
+        String termo = getString(R.string.exato);
+        Calendar hora_saida;
         String text_saida = " --- ";
-        String br = System.getProperty("line.separator");
+
+        long intervalo = Integer.parseInt(prefs.getString("intervalo_list", "1")) * 60 * 60 * 1000;
+
+        alarmManager.cancel(pendingIntent);
 
         if (saida < 0) {
-            termo = "Extra";
+            termo = getString(R.string.extra);
         } else if (saida > 0) {
-            termo = "Faltam";
-
+            termo = getString(R.string.faltam);
             hora_saida = horarioSaida(lm, saida);
+
             if (hora_saida != null) {
-                text_saida = new SimpleDateFormat("HH:mm").format(hora_saida.getTime());
-                if (hora_saida.getTimeInMillis() > Calendar.getInstance().getTimeInMillis())
-                    setAlarm(hora_saida);
+                text_saida = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(hora_saida.getTime());
+                setAlarm(hora_saida);
             }
         }
+
+        Calendar horaVoltaIntervalo = horarioIntervalo(lm, intervalo);
+
+        if (horaVoltaIntervalo != null)
+            setAlarm(horaVoltaIntervalo);
 
         textTermo.setText(termo);
         textTrab.setText(converteHMS(soma));
         textDif.setText(converteHMS(Math.abs(saida)));
         textSaida.setText(text_saida);
 
-
         listView.setSelection(listView.getAdapter().getCount());
     }
 
-    private void setAlarm(Calendar hora_saida) {
-        Intent myIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
-        //alarmManager.cancel(pendingIntent);
 
-        if (prefs.getBoolean("alarme_checkbox", false))
-            alarmManager.set(AlarmManager.RTC_WAKEUP, hora_saida.getTimeInMillis(), pendingIntent);
-        else
-            alarmManager.cancel(pendingIntent);
+    private void setAlarm(Calendar hora) {
+        long delay = Integer.parseInt(prefs.getString("alarme_delay", "5")) * 60 * 1000;
 
+        if (prefs.getBoolean("alarme_checkbox", false)) {
+            long hora_atual = Calendar.getInstance().getTimeInMillis();
+            if (hora.getTimeInMillis() - delay > hora_atual)
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, hora.getTimeInMillis() - delay, pendingIntent);
+        }
     }
-
-
 
     private void cancelAlarm() {
         Intent myIntent = new Intent(this, AlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
-        //alarmManager.cancel(pendingIntent);
         alarmManager.cancel(pendingIntent);
+    }
+
+    private Calendar horarioIntervalo(ArrayList<Marcacoes> lm, long intervalo) {
+        //int i = lm.size();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        long novoHorario = -1;
+        Calendar retorno = null;
+        Calendar c1 = GregorianCalendar.getInstance();
+
+        for (int i = 1; i < lm.size(); i++) {
+            if (i % 2 != 0) {
+                try {
+                    c1.setTime(df.parse(lm.get(i).getData() + " " + lm.get(i).getHora()));
+                    novoHorario = intervalo + c1.getTimeInMillis();
+                    c1.setTimeInMillis(novoHorario);
+                    retorno = c1;
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return retorno;
     }
 
     private Calendar horarioSaida(ArrayList<Marcacoes> lm, long saida) {
         int i = lm.size();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
         long novoHorario = -1;
         Calendar retorno = null;
-        if (i > 0 && i % 2 != 0) {
 
+        if (i > 0 && i % 2 != 0) {
             Calendar c1 = GregorianCalendar.getInstance();
             try {
                 c1.setTime(df.parse(lm.get(i - 1).getData() + " " + lm.get(i - 1).getHora()));
@@ -195,7 +213,6 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         return String.format("%01dh%02d", (soma / 60), (soma % 60));
     }
 
-
     private long somarHoras(ArrayList<Marcacoes> lm) {
         long dif = 0;
         for (int i = 1; i < lm.size(); i++) {
@@ -211,7 +228,6 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
 
         return dif;
     }
-
 
     @Override
     public void onBackPressed() {
@@ -250,9 +266,7 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
 
         if (id == R.id.action_limpar) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.confirma_exclusao);
-
-            builder.setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
+            builder.setMessage(R.string.confirma_exclusao).setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     db.deleteAllMarcacoes();
                     displayListView();
@@ -286,13 +300,12 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
                         }
                     })
                     .setView(timePicker).show();
-
         }
 
         if (id == R.id.action_apagar) {
             CheckBox cb;
             TextView idn;
-            ArrayList<String> lista = new ArrayList<String>();
+            ArrayList<String> lista = new ArrayList<>();
             int c = listView.getAdapter().getCount();
             for (int i = 0; i < c; i++) {
                 cb = (CheckBox) listView.getChildAt(i).findViewById(R.id.checkBox1);
@@ -313,6 +326,7 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
+            displayListView();
         }
 
         return super.onOptionsItemSelected(item);
@@ -321,7 +335,6 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     @Override
     public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
         final int checkedCount = listView.getCheckedItemCount();
-        final long[] checkedItemIds = listView.getCheckedItemIds();
         mode.setTitle(checkedCount + " Selecionado" + (checkedCount > 1 ? "s" : ""));
         adapter.toggleSelection(position);
     }
@@ -340,7 +353,6 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
     @Override
     public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
         int id = item.getItemId();
-
         if (id == R.id.action_apagar) {
 
             SparseBooleanArray selected = adapter.getSelectedIds();
@@ -364,4 +376,3 @@ public class MainActivity extends Activity implements AbsListView.MultiChoiceMod
         adapter.removeSelection();
     }
 }
-
